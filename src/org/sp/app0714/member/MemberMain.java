@@ -1,10 +1,12 @@
 package org.sp.app0714.member;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -27,6 +29,11 @@ public class MemberMain extends JFrame{
 	JButton bt_select;
 	JTextArea area;
 	JScrollPane scroll;
+	
+	//오라클 접속 정보 
+	String url="jdbc:oracle:thin:@localhost:1521:XE";
+	String user="java";
+	String pass="1234";
 	
 	public MemberMain() {
 		p_west = new JPanel();
@@ -75,6 +82,30 @@ public class MemberMain extends JFrame{
 				System.exit(0);
 			}
 		});
+		
+		connect(); //오라클 접속
+	}
+	
+	public void connect() {
+		//1.드라이버 로드 
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			System.out.println("드라이버 로드 성공");
+			
+			//2.접속 
+			Connection con=null;
+			con=DriverManager.getConnection(url, user, pass);
+			if(con==null) {
+				System.out.println("접속실패");
+			}else {
+				System.out.println("접속성공");
+			}
+		} catch (ClassNotFoundException e) {
+			System.out.println("드라이버 로드  실패");
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static void main(String[] args) {
