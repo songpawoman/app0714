@@ -151,16 +151,16 @@ public class MemberMain extends JFrame{
 			rs=pstmt.executeQuery();
 			
 			//커서란? 레코드를 가리키는 포인터
-			boolean result=rs.next(); //커서 한칸 전진
-			System.out.println(result);
-			
-			int idx=rs.getInt("member_idx");
-			String id=rs.getString("id");
-			String name=rs.getString("name");
-			String phone=rs.getString("phone");
-			
-			System.out.println(idx+", "+id+","+name+","+phone);
-		
+			while(rs.next()) {//커서 한칸 전진
+				int idx=rs.getInt("member_idx");
+				String id=rs.getString("id");
+				String name=rs.getString("name");
+				String phone=rs.getString("phone");
+				
+				//기존 데이터를 지우고 출력하자 
+				area.setText("");
+				area.append(idx+", "+id+","+name+","+phone+"\n");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}finally {
@@ -197,12 +197,19 @@ public class MemberMain extends JFrame{
 			int result=pstmt.executeUpdate();
 			if(result>0) {
 				//조회시도
-				System.out.println("등록성공");
+				getList();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
-		
+		}finally {
+			if(pstmt!=null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}		
 	}
 	
 	public static void main(String[] args) {
