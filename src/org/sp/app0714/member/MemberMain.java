@@ -2,14 +2,19 @@ package org.sp.app0714.member;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -34,6 +39,7 @@ public class MemberMain extends JFrame{
 	String url="jdbc:oracle:thin:@localhost:1521:XE";
 	String user="java";
 	String pass="1234";
+	Connection con=null;
 	
 	public MemberMain() {
 		p_west = new JPanel();
@@ -79,7 +85,28 @@ public class MemberMain extends JFrame{
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				// db닫기, 각종 자원 닫기!
-				System.exit(0);
+				if(con!=null) {
+					try {
+						con.close();
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+				}
+				System.exit(0);//프로세스 죽이기
+			}
+		});
+		
+		//조회 버튼과 리스너연결 
+		bt_select.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getList();
+			}
+		});
+		
+		//등록버튼과 리스너 연결 
+		bt_regist.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				regist();
 			}
 		});
 		
@@ -93,7 +120,7 @@ public class MemberMain extends JFrame{
 			System.out.println("드라이버 로드 성공");
 			
 			//2.접속 
-			Connection con=null;
+			
 			con=DriverManager.getConnection(url, user, pass);
 			if(con==null) {
 				System.out.println("접속실패");
@@ -106,6 +133,76 @@ public class MemberMain extends JFrame{
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	//회원 조회 
+	public void getList() {
+		PreparedStatement pstmt=null;
+		ResultSet rs=null;
+		
+		try {
+			String sql="select * from member";
+			pstmt=con.prepareStatement(sql);
+			
+			//쿼리실행 (DDL, DML, DCL, select)
+			//select 문의 경우, 아래의 executeQuery() 메서드를 이용해야
+			//하며, 표를 표현하는 ResultSet 을 반환받는다
+			//개발시 ResultSet 은 DB 의 표 자체를 표현한다고 염두해두자
+			rs=pstmt.executeQuery();
+			
+			//커서란? 레코드를 가리키는 포인터
+			boolean result=rs.next(); //커서 한칸 전진
+			System.out.println(result);
+			
+			int idx=rs.getInt("member_idx");
+			String id=rs.getString("id");
+			String name=rs.getString("name");
+			String phone=rs.getString("phone");
+			
+			System.out.println(idx+", "+id+","+name+","+phone);
+		
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}finally {
+			if(rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			if(pstmt != null) {
+				try {
+					pstmt.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+	}
+	
+	//회원등록 
+	public void regist() {
+		PreparedStatement pstmt=null;
+		String id			= t_id.getText();
+		String name		= t_name.getText();
+		String phone		= t_phone.getText();
+		
+		try {
+			String sql="insert into member(member_idx, id, name, phone)";
+			sql+=" values(seq_member.nextval ,'"+id+"','"+name+"','"+phone+"')";
+			pstmt=con.prepareStatement(sql);
+			
+			int result=pstmt.executeUpdate();
+			if(result>0) {
+				//조회시도
+				System.out.println("등록성공");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public static void main(String[] args) {
